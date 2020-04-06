@@ -13,6 +13,11 @@ class RenderInterface(CameraInterface, ZBufferInterface, CoordinateAxesInterface
 
     def __init__(self, off_screen_rendering=True, width=None, height=None, background_color=(0, 0, 255)):
 
+        print(
+            'VTK Version: ' +
+            str(vtk.vtkVersion.GetVTKMajorVersion()) + '.' +
+            str(vtk.vtkVersion.GetVTKMinorVersion()))
+
         self.vtk_renderer = vtk.vtkRenderer()
 
         self.vtk_render_window = vtk.vtkRenderWindow()
