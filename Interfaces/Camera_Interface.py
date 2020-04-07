@@ -82,8 +82,8 @@ class CameraInterface(CameraExtrinsicInterface, CameraIntrinsicInterface):
 
         # IMPORTANT OTHERWISE THE VISUALIZATION IS BUGGY
         self.vtk_renderer.ResetCameraClippingRange()
-        # Always call the render function of the window, not the renderer itself
-        self.vtk_render_window.Render()
+        # # Always call the render function of the window, not the renderer itself
+        # self.vtk_render_window.Render()
 
         logger.info('set_active_cam_from_opengl_cam_to_world_mat: Done')
 

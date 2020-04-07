@@ -40,10 +40,7 @@ class RenderInterface(CameraInterface, ZBufferInterface, CoordinateAxesInterface
         self.vtk_render_window.AddRenderer(self.vtk_renderer)
 
         if not off_screen_rendering:
-            self.vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
-            self.vtk_render_window_interactor.SetRenderWindow(self.vtk_render_window)
-            self.set_interaction_style()
-            self.vtk_render_window_interactor.Initialize()
+            self._init_render_window_interactor()
 
         # Configure Render Settings
         self.vtk_renderer.SetBackground(*background_color)
@@ -54,13 +51,26 @@ class RenderInterface(CameraInterface, ZBufferInterface, CoordinateAxesInterface
 
         self.set_active_cam_model_view_transformation_to_identity()
 
+    def _init_render_window_interactor(self):
+        self.vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
+        self.vtk_render_window_interactor.SetRenderWindow(self.vtk_render_window)
+        self.set_interaction_style()
+        self.vtk_render_window_interactor.Initialize()
+
     def add_actor(self, actor):
         self.vtk_renderer.AddActor(actor)
+
+    def add_point_cloud(self, coords, colors=None):
+        point_cloud_actor = ActorUtility.create_vtk_point_cloud_actor(coords, colors)
+        self.add_actor(point_cloud_actor)
 
     def load_vtk_mesh_or_point_cloud(self, poly_ifp, texture_ifp=None):
         actor = ActorUtility.create_vtk_mesh_or_point_cloud_actor_from_file(
             poly_ifp, texture_ifp)
         self.vtk_renderer.AddActor(actor)
+
+    def get_render_window(self):
+        return self.vtk_render_window
 
     def set_interaction_style(self):
 
@@ -93,5 +103,6 @@ class RenderInterface(CameraInterface, ZBufferInterface, CoordinateAxesInterface
         self.vtk_render_window_interactor.Start()
 
     def render_and_start(self):
-        self.vtk_render_window.Render()
-        self.vtk_render_window_interactor.Start()
+        self.render()
+        self.start_interactor()
+

@@ -34,7 +34,11 @@ class DataUtility(object):
         return vtk_vertices
 
     @staticmethod
-    def create_point_cloud_poly_data(coords, colors):
+    def create_point_cloud_poly_data(coords, colors=None):
+
+        if colors is None:
+            colors = [[1, 1, 1] for coord in coords]
+
         point_cloud_poly_data = vtk.vtkPolyData()
 
         points = vtk.vtkPoints()
@@ -145,41 +149,4 @@ class DataUtility(object):
         vtk_image_writer.SetInputData(poly_data)
         vtk_image_writer.Write()
 
-    @staticmethod
-    def write_z_buffer_to_disc(vtk_renderWindow, jpeg_ofp):
 
-        # Make sure the opacity of the object is 1
-
-        vtk_windowToImageFilter = vtk.vtkWindowToImageFilter()
-        vtk_imageShiftScale = vtk.vtkImageShiftScale()
-        vtk_image_writer = vtk.vtkJPEGWriter()
-
-        vtk_windowToImageFilter.SetInput(vtk_renderWindow)
-        vtk_windowToImageFilter.SetMagnification(1)
-        vtk_windowToImageFilter.SetInputBufferTypeToZBuffer()
-
-        vtk_imageShiftScale.SetOutputScalarTypeToUnsignedChar()
-        vtk_imageShiftScale.SetInputConnection(vtk_windowToImageFilter.GetOutputPort())
-        vtk_imageShiftScale.SetShift(0)
-        vtk_imageShiftScale.SetScale(-255)
-
-        vtk_image_writer.SetFileName(jpeg_ofp)
-        vtk_image_writer.SetInputConnection(vtk_imageShiftScale.GetOutputPort())
-        vtk_image_writer.Write()
-
-    @staticmethod
-    def write_z_visualization_to_disc(z_buffer_data_numpy, jpeg_ofp, width=1920, height=1080):
-
-        # z_buffer_data_numpy = get_opengl_z_buffer_as_numpy_arr()
-
-        fig = plt.figure(frameon=False)
-        fig.set_size_inches(width / 100.0, height / 100.0)
-        ax = plt.Axes(fig, [0., 0., 1., 1.])
-        ax.set_axis_off()
-        fig.add_axes(ax)
-        ax.imshow(
-            z_buffer_data_numpy,
-            aspect='normal',
-            origin='lower',
-            cmap='gray')
-        fig.savefig(jpeg_ofp)

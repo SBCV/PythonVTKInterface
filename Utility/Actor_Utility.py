@@ -43,7 +43,7 @@ class ActorUtility(object):
         return actor
 
     @staticmethod
-    def create_vtk_point_cloud_actor(coords, colors, opacity=1.0, point_size=3, overwrite_color=None):
+    def create_vtk_point_cloud_actor(coords, colors=None, opacity=1.0, point_size=3, overwrite_color=None):
         point_cloud_poly_data = DataUtility.create_point_cloud_poly_data(coords, colors)
         return ActorUtility.create_vtk_point_cloud_actor_from_poly_data(
             point_cloud_poly_data, opacity, point_size, overwrite_color)
