@@ -7,14 +7,14 @@ from Utility.File_Handler.Colmap_File_Handler import ColmapFileHandler
 from VTKInterface.Interfaces.Render_Interface import RenderInterface
 
 parent_dp = os.path.dirname(os.path.realpath(__file__))
-poly_ifp = os.path.join(parent_dp, 'Data', 'mesh.obj')
-texture_ifp = os.path.join(parent_dp, 'Data', 'texture.jpg')
-colmap_model_idp = os.path.join(parent_dp, 'Data', 'colmap_model')
+poly_ifp = os.path.join(parent_dp, 'Data', 'virtual', 'mesh.obj')
+texture_ifp = os.path.join(parent_dp, 'Data', 'virtual', 'texture.jpg')
+colmap_model_idp = os.path.join(parent_dp, 'Data', 'virtual', 'colmap_model')
 
 
-colmap_result_model_odp = os.path.join(parent_dp, 'Data', 'colmap_result_model')
-z_buffer_ofp = os.path.join(parent_dp, 'Data', 'z_buffer.jpg')
-z_buffer_viz_ofp = os.path.join(parent_dp, 'Data', 'z_buffer_viz.jpg')
+colmap_result_model_odp = os.path.join(parent_dp, 'Data', 'virtual', 'colmap_result_model')
+z_buffer_ofp = os.path.join(parent_dp, 'Data', 'virtual', 'z_buffer.jpg')
+z_buffer_viz_ofp = os.path.join(parent_dp, 'Data', 'virtual', 'z_buffer_viz.jpg')
 
 cameras, points3D = ColmapFileHandler.parse_colmap_model_folder(
     colmap_model_idp,

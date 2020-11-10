@@ -116,7 +116,10 @@ class ActorUtility(object):
     def create_vtk_mesh_or_point_cloud_actor_from_file(poly_ifp, texture_ifp=None):
         poly_data = DataUtility.create_poly_data_from_file(
             poly_ifp)
-        texture = DataUtility.create_texture_from_jpeg(texture_ifp)
+        if texture_ifp is None:
+            texture = None
+        else:
+            texture = DataUtility.create_texture_from_jpeg(texture_ifp)
 
         return ActorUtility.create_vtk_mesh_or_point_cloud_actor_from_poly_data(
             poly_data,

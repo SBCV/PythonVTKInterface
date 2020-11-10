@@ -5,9 +5,9 @@ from VTKInterface.Interfaces.Render_Interface import RenderInterface
 import os
 
 parent_dp = os.path.dirname(os.path.realpath(__file__))
-poly_ifp = os.path.join(parent_dp, 'Data', 'mesh.obj')
-texture_ifp = os.path.join(parent_dp, 'Data', 'texture.jpg')
-colmap_model_idp = os.path.join(parent_dp, 'Data', 'colmap_model')
+poly_ifp = os.path.join(parent_dp, 'Data', 'virtual', 'mesh.obj')
+texture_ifp = os.path.join(parent_dp, 'Data', 'virtual', 'texture.jpg')
+colmap_model_idp = os.path.join(parent_dp, 'Data', 'virtual', 'colmap_model')
 
 cameras, points3D = ColmapFileHandler.parse_colmap_model_folder(
     colmap_model_idp,

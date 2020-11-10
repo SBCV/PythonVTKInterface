@@ -1,6 +1,4 @@
 Applications/*
 *.pyc
-Examples/Data/PotentialModels.txt
-Examples/Data/colmap_result_model
-Examples/Data/z_buffer.jpg
-Examples/Data/z_buffer_viz.jpg
+Examples/Data/sceaux*
+Examples/Data/virtual*

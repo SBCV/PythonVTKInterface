@@ -2,7 +2,7 @@ import os
 import vtk
 
 from matplotlib import pyplot as plt
-
+from Utility.Logging_Extension import logger
 
 class DataUtility(object):
 
@@ -110,7 +110,7 @@ class DataUtility(object):
         return poly_data
 
     @staticmethod
-    def create_poly_data_from_ply(ply_ifp, report_statistics=True):
+    def create_poly_data_from_ply(ply_ifp, report_statistics=False):
 
         # The color information is stored in
         #       vtk_colors = poly_data.GetPointData().GetScalars()
@@ -122,8 +122,8 @@ class DataUtility(object):
         reader_ply.Update()
         poly_data = reader_ply.GetOutput()
         if report_statistics:
-            print('Number of points: ' + str(poly_data.GetNumberOfPoints()))
-            print('Number of polys: ' + str(poly_data.GetNumberOfPolys()))
+            logger.vinfo('Number of points', poly_data.GetNumberOfPoints())
+            logger.vinfo('Number of polys', poly_data.GetNumberOfPolys())
 
         if poly_data.GetNumberOfPoints() == 0:
             raise ValueError("No point data could be loaded from '" + ply_ifp)

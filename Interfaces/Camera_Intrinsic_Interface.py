@@ -1,5 +1,7 @@
 import vtk
+import sys
 
+from Utility.Logging_Extension import logger
 from Utility.Types.Camera import Camera
 from VTKInterface.Interfaces.Base_Interface import BaseInterface
 
@@ -21,9 +23,12 @@ class CameraIntrinsicInterface(BaseInterface):
         wcy = 2 * (principal_pt[1] - height / 2.0) / float(height)
         vtk_camera.SetWindowCenter(wcx, wcy)
 
-    def set_active_cam_intrinsics(self, np_mat, width, height, max_clipping_range=100.0):
+    def set_active_cam_intrinsics(self, calibration_np_mat, width, height, max_clipping_range=sys.float_info.max):
         active_vtk_camera = self.vtk_renderer.GetActiveCamera()
-        focal_length = np_mat[0][0]
+        focal_length = calibration_np_mat[0][0]
+        if not calibration_np_mat[0][0] == calibration_np_mat[1][1]:
+            logger.vinfo('calibration_mat', calibration_np_mat)
+            assert False
         view_angle = Camera.compute_view_angle(
             focal_length, width, height)
         active_vtk_camera.SetViewAngle(view_angle)

@@ -1,1 +1,0 @@
-# 3D point list with one line of data per point:

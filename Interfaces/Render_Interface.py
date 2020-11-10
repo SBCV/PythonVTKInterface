@@ -1,12 +1,13 @@
 import vtk
 from VTKInterface.Interfaces.Camera_Interface import CameraInterface
 from VTKInterface.Interfaces.ZBuffer_Interface import ZBufferInterface
+from VTKInterface.Interfaces.Image_Buffer_Interface import ImageBufferInterface
 from VTKInterface.Interfaces.Coordinate_Axes_Interface import CoordinateAxesInterface
 
 from VTKInterface.Utility.Actor_Utility import ActorUtility
 
 
-class RenderInterface(CameraInterface, ZBufferInterface, CoordinateAxesInterface):
+class RenderInterface(CameraInterface, ZBufferInterface, ImageBufferInterface, CoordinateAxesInterface):
 
     # https://www.kitware.com/products/books/VTKUsersGuide.pdf
     #       4.4 Controlling The Camera
@@ -24,6 +25,8 @@ class RenderInterface(CameraInterface, ZBufferInterface, CoordinateAxesInterface
         CameraInterface.__init__(
             self, self.vtk_renderer, self.vtk_render_window)
         ZBufferInterface.__init__(
+            self, self.vtk_renderer, self.vtk_render_window, width, height)
+        ImageBufferInterface.__init__(
             self, self.vtk_renderer, self.vtk_render_window, width, height)
 
         self.vtk_axes_actor = vtk.vtkAxesActor()

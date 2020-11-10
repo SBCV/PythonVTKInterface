@@ -26,71 +26,20 @@ class ZBufferInterface(BaseInterface):
         self.width = width
         self.height = height
 
-    def get_z_buffer_sparse(self, sparsity=100):
-        z_buffer_data_numpy = self.get_opengl_z_buffer_as_numpy_arr()
-        z_buffer_sparse = z_buffer_data_numpy[::sparsity]
-        return z_buffer_sparse.flatten()
-
-    def get_z_buffer_as_numpy_arr_legazy(self):
-
-        """
-        Returns the z buffer values in image coordinates
-        Do not confuse z_buffer with depth_buffer!
-        * z_buffer contains values in [0,1]
-        * depth_buffer contains the actual distance values
-        """
-        # C++ Code
-        #   https://www.vtk.org/Wiki/VTK/Examples/Cxx/Utilities/ZBuffer#Please_try_the_new_VTKExamples_website.
-        #   https://www.vtk.org/doc/nightly/html/classvtkRenderWindow.html
-        #       GetZbufferDataAtPoint()
-        #   https://www.vtk.org/doc/nightly/html/classvtkRenderWindow.html#a5b2da90b3b396c3fcf816b64a83749eb
-
-        # ================== Access the z data ====================
-        # Given a pixel location, return the Z value. The z value is normalized (0,1)
-        # between the front and back clipping planes.
-        # vtk_renderer.GetZ(x,y)
-        # vtk_renderWindow.GetZbufferDataAtPoint(x, y)
-        # vtk_renderWindow.GetZbufferData(0, 0, width, height)
-        # =======================================================
-
-        width, height = self.vtk_render_window.GetSize()
-        z_buffer_data_numpy = np.zeros((height, width), dtype=float)
-        pixel_index = 0
-        pixel_overall = width * height
-        for x in range(0, width):
-            for y in range(0, height):
-                if pixel_index % 1000 == 0:
-                    logger.info(str(pixel_index) + ' of ' + str(pixel_overall))
-                z_buffer_data_point = self.vtk_render_window.GetZbufferDataAtPoint(x, y)
-                # if z_buffer_data_point != 1.0:
-                #     print(z_buffer_data_point)
-                z_buffer_data_numpy[y][x] = z_buffer_data_point
-                pixel_index += 1
-        return z_buffer_data_numpy
-
-    def get_computer_vision_z_buffer_as_numpy_arr(self):
-
-        """
-        Returns the z buffer values in image coordinates
-        Do not confuse z_buffer with depth_buffer!
-        * z_buffer contains values in [0,1]
-        * depth_buffer contains the actual distance values
-        :return:
-        """
-
-        opengl_z_buffer = self.get_opengl_z_buffer_as_numpy_arr()
-        return np.flipud(opengl_z_buffer)   # flipping along the first axis (y)
+    # def get_z_buffer_sparse(self, sparsity=100):
+    #     z_buffer_data_numpy = self.get_opengl_z_buffer_as_numpy_arr()
+    #     z_buffer_sparse = z_buffer_data_numpy[::sparsity]
+    #     return z_buffer_sparse.flatten()
 
     def get_opengl_z_buffer_as_numpy_arr(self):
         """
-        Returns the z buffer values in image coordinates
-        This z buffer corresponds to an image starting at the lower left (0,0)
-        Do not confuse z_buffer with depth_buffer!
-        * z_buffer contains values in [0,1]
-        * depth_buffer contains the actual distance values
-        :return:
+        Returns the z buffer values in [0,1] in image coordinates
+        The z buffer corresponds to an image starting at the lower left (0,0)
         """
-
+        if not self.vtk_render_window.GetOffScreenRendering():
+            error_str = 'THIS ONLY WORKS IN OFF SCREEN MODE ' \
+                        '(use off_screen_rendering=True in render_interface constructor)'
+            assert False, error_str
         # http://berkgeveci.github.io/page7/
         z_buffer_data = vtk.vtkFloatArray()
         # GetZbufferData (int x, int y, int x2, int y2, vtkFloatArray *z)
@@ -100,26 +49,25 @@ class ZBufferInterface(BaseInterface):
         z_buffer_data_numpy = np.reshape(z_buffer_data_numpy, (-1, self.render_width))
         return z_buffer_data_numpy
 
+    def get_computer_vision_z_buffer_as_numpy_arr(self):
+        """ z_buffer contains values in [0,1]  """
+        opengl_z_buffer = self.get_opengl_z_buffer_as_numpy_arr()
+        # flipping along the first axis (y)
+        return np.flipud(opengl_z_buffer)
+
     def get_z_buffer_as_world_coords(self, n_th_result_point=10):
-        """
-        Do not confuse z_buffer with depth_buffer!
-        z_buffer contains values in [0,1]
-        depth_buffer contains the actual distance values
-        :param z_buffer_matrix: contains values between 0 and 1.0
-        :return:
-        """
+        """ z_buffer contains values in [0,1]  """
         z_buffer_matrix = self.get_opengl_z_buffer_as_numpy_arr()
         return self.convert_z_buffer_mat_to_world_coords(z_buffer_matrix, n_th_result_point)
 
     def convert_z_buffer_mat_to_world_coords(self, z_buffer_matrix, n_th_result_point=10):
+        """ z_buffer contains values in [0,1]  """
 
-        """
-        Do not confuse z_buffer with depth_buffer!
-        * z_buffer contains values in [0,1]
-        * depth_buffer contains the actual distance values
-        :param z_buffer_matrix: contains values between 0 and 1.0
-        :return:
-        """
+        # https://vtk.org/doc/nightly/html/classvtkDepthImageToPointCloud.html
+        # https://github.com/Kitware/VTK/blob/master/Rendering/Image/vtkDepthImageToPointCloud.h
+        #   TODO
+        #   e.g. vtk.vtkDepthImageToPointCloud() is part of the python interface
+
         world_coords = []
         index = 0
         num_values = z_buffer_matrix.shape[0] * z_buffer_matrix.shape[1]
@@ -130,41 +78,13 @@ class ZBufferInterface(BaseInterface):
             if z_value < 1.0:
                 if index % n_th_result_point == 0:
                     # https://www.vtk.org/doc/nightly/html/classvtkViewport.html
-                    self.vtk_renderer.SetDisplayPoint(x, y, z_value)
+                    self.vtk_renderer.SetDisplayPoint(x, y, z_value)    # TODO REMOVE REDUNDANT?
                     # https://www.vtk.org/doc/nightly/html/classvtkRenderer.html
 
                     world_coord = self._vtk_convert_display_coord_to_world_coord(x, y, z_value)
                     world_coords.append(world_coord)
             index += 1
 
-        return world_coords
-
-    def convert_z_buffer_list_with_none_to_world_coords(self,
-                                                        pixel_z_values,
-                                                        computer_vision_pixels=True):
-
-        """
-        computer vision pixels start at the upper left
-        :param pixel_z_values:
-        :param computer_vision_pixels: computer_vision_pixels start at the upper left
-        :return:
-        """
-
-        world_coords = []
-        for index, vec in enumerate(pixel_z_values):
-            if vec is None:
-                world_coords.append(None)
-            else:
-                (x, y, z_value) = vec
-                # We assume that points lying on the clipping plane are not part of the scene
-                if z_value < 1.0:
-                    # does not work
-                    if computer_vision_pixels:      # rotation around the x axis
-                        y = self.render_height - y
-                    world_coord = self._vtk_convert_display_coord_to_world_coord(x, y, z_value)
-                    world_coords.append(world_coord)
-                else:
-                    world_coords.append(None)
         return world_coords
 
     def _vtk_convert_display_coord_to_world_coord(self, x, y, z):
@@ -175,10 +95,36 @@ class ZBufferInterface(BaseInterface):
         world_coord_hom = np.asarray(world_coord_hom, dtype=float)
         world_coord_hom /= world_coord_hom[3]
         world_coord = world_coord_hom[0:3]
-
         return world_coord
 
+    def get_computer_vision_depth_buffer_as_numpy_arr(self):
+
+        # https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
+
+        # https://discourse.paraview.org/t/help-how-create-a-depth-map-using-paraview-is-it-possible/738
+
+        # https://stackoverflow.com/questions/17659362/get-depth-from-camera-for-each-pixel
+        #   according to the comments here, the depth buffer is not linearly spaced
+
+        z_buffer_data_numpy = self.get_computer_vision_z_buffer_as_numpy_arr()
+        z_near, z_far = self.get_clipping_range()
+        # logger.vinfo('z_near', z_near)
+        # logger.vinfo('z_far', z_far)
+
+        # http://web.archive.org/web/20130416194336/http://olivers.posterous.com/linear-depth-in-glsl-for-real
+        #   See the 3rd code block
+        numerator = 2.0 * z_near * z_far
+        denominator = z_far + z_near - (2.0 * z_buffer_data_numpy - 1.0) * (z_far - z_near)
+        depth_buffer_data_numpy = numerator/denominator
+        depth_buffer_data_numpy[z_buffer_data_numpy == 1.0] = 0
+
+        return depth_buffer_data_numpy
+
+    def get_clipping_range(self):
+        return self.vtk_renderer.GetActiveCamera().GetClippingRange()
+
     def write_z_buffer_to_disc(self, jpeg_ofp):
+        """ z_buffer contains values in [0,1]  """
 
         # Make sure the opacity of the object is 1
 
@@ -200,6 +146,7 @@ class ZBufferInterface(BaseInterface):
         image_writer.Write()
 
     def write_z_buffer_visualization_to_disc(self, z_buffer_viz_ofp):
+        """ z_buffer contains values in [0,1]  """
 
         z_buffer_data_numpy = self.get_opengl_z_buffer_as_numpy_arr()
         fig = plt.figure(frameon=False)
@@ -222,3 +169,26 @@ class ZBufferInterface(BaseInterface):
             cmap='gray')
         plt.axis('off')
         plt.show()
+
+    ########################################################################
+
+    def convert_z_buffer_list_with_none_to_world_coords(self,
+                                                        pixel_z_values,
+                                                        computer_vision_pixels=True):
+
+        world_coords = []
+        for index, vec in enumerate(pixel_z_values):
+            if vec is None:
+                world_coords.append(None)
+            else:
+                (x, y, z_value) = vec
+                # We assume that points lying on the clipping plane are not part of the scene
+                if z_value < 1.0:
+                    # does not work
+                    if computer_vision_pixels:      # rotation around the x axis
+                        y = self.render_height - y
+                    world_coord = self._vtk_convert_display_coord_to_world_coord(x, y, z_value)
+                    world_coords.append(world_coord)
+                else:
+                    world_coords.append(None)
+        return world_coords

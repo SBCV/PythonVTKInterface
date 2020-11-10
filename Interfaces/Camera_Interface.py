@@ -1,3 +1,4 @@
+import sys
 import vtk
 
 from Utility.Logging_Extension import logger
@@ -24,9 +25,10 @@ class CameraInterface(CameraExtrinsicInterface, CameraIntrinsicInterface):
         #   Automatically set up the camera based on the visible actors.
         self.vtk_renderer.ResetCamera()
 
-    def set_active_cam_from_computer_vision_cam(self, computer_vision_cam, max_clipping_range=100.0):
+    def set_active_cam_from_computer_vision_cam(self,
+                                                computer_vision_cam,
+                                                max_clipping_range=sys.float_info.max):
         self.set_active_cam_from_computer_vision_cam_to_world_mat(
-            computer_vision_cam.get_4x4_cam_to_world_mat(),
             computer_vision_cam.get_calibration_mat(),
             computer_vision_cam.width,
             computer_vision_cam.height,
@@ -37,7 +39,7 @@ class CameraInterface(CameraExtrinsicInterface, CameraIntrinsicInterface):
                                                              calibration_np_mat,
                                                              width,
                                                              height,
-                                                             max_clipping_range=100.0):
+                                                             max_clipping_range=sys.float_info.max):
         cam_to_world_opengl_np_mat = convert_computer_vision_to_opengl_camera(
             cam_to_world_computer_vision_np_mat)
         self.set_active_cam_from_opengl_cam_to_world_mat(
@@ -63,7 +65,7 @@ class CameraInterface(CameraExtrinsicInterface, CameraIntrinsicInterface):
                                                     calibration_np_mat,
                                                     width,
                                                     height,
-                                                    max_clipping_range=100.0):
+                                                    max_clipping_range=sys.float_info.max):
         logger.info('set_active_cam_from_opengl_cam_to_world_mat: ...')
 
         # https://github.com/Kitware/VTK/blob/master/Rendering/Core/vtkCamera.h
@@ -97,6 +99,7 @@ class CameraInterface(CameraExtrinsicInterface, CameraIntrinsicInterface):
         self.set_active_cam_intrinsics_from_virtual_cam(
             opengl_cam,
             max_clipping_range)
+
 
 # ========================================= Notes =========================================
 # ModelTransformationMatrix
